@@ -5,8 +5,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(mes
 # List of websites to monitor (edit as needed)
 SITES = [
     "https://google.com",
-    "https://github.com",
-    "https://stackoverflow.com"
+    "https://github.com"
 ]
 
 # Telegram Bot details (set as env vars)
