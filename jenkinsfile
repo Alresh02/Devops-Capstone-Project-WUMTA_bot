@@ -1,46 +1,68 @@
 pipeline {
     agent any
+
     environment {
-        DOCKERHUB_USER = "reshars"
-        IMAGE = "reshars/uptime-monitor:latest"
+        DOCKER_IMAGE = "reshars/uptime-monitor"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+        TELEGRAM_BOT_TOKEN = credentials('TELEGRAM_BOT_TOKEN')
+        TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
+        APP_SERVER = "13.234.76.54" //Replace with your EC2 Public IP
     }
+
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git credentialsId: '', url: 'https://github.com/your-username/website-uptime-monitor.git'
+                echo 'Checking out code...'
+                git branch: 'feature/jenkins', url: 'https://github.com/Alresh02/Devops-Capstone-Project-WUMTA_bot.git'
             }
         }
-        stage('Build Image') {
+
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE ./app'
+                echo 'Building Docker image...'
+                sh 'docker build -t $DOCKER_IMAGE:latest ./app'
             }
         }
-        stage('Push Image') {
+
+        stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+                echo 'Pushing image to Docker Hub...'
+                sh '''
+                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                docker push $DOCKER_IMAGE:latest
+                '''
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                echo '🚀 Deploying to EC2 instance...'
+                sshagent (credentials: ['uptime-ec2-key']) {
                     sh '''
-                        echo $DH_PASS | docker login -u $DH_USER --password-stdin
-                        docker push $IMAGE
+                    scp -o StrictHostKeyChecking=no deploy.sh ubuntu@$APP_SERVER:/home/ubuntu/
+                    ssh -o StrictHostKeyChecking=no ubuntu@$APP_SERVER "chmod +x deploy.sh && ./deploy.sh"
                     '''
                 }
             }
         }
-        stage('Deploy to EC2') {
-            steps {
-                // Replace <EC2_PUBLIC_IP> with the output from terraform or use Jenkins credentials
-                sh '''
-                ssh -o StrictHostKeyChecking=no -i /path/to/key.pem ubuntu@<EC2_PUBLIC_IP> "
-                  docker pull reshars/uptime-monitor:latest || true
-                  docker stop uptime-monitor || true
-                  docker rm uptime-monitor || true
-                  docker run -d --name uptime-monitor \
-                    -e TELEGRAM_BOT_TOKEN=\"$TELEGRAM_BOT_TOKEN\" \
-                    -e TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" \
-                    -e CHECK_INTERVAL=300 \
-                    reshars/uptime-monitor:latest
-                "
-                '''
-            }
+    }
+
+    post {
+        success {
+            echo 'Deployment successful!'
+            sh '''
+            curl -s -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage \
+            -d chat_id=$TELEGRAM_CHAT_ID \
+            -d text="Website Uptime Monitor successfully deployed!"
+            '''
+        }
+        failure {
+            echo 'Deployment failed!'
+            sh '''
+            curl -s -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage \
+            -d chat_id=$TELEGRAM_CHAT_ID \
+            -d text="Deployment failed for Website Uptime Monitor!"
+            '''
         }
     }
 }
