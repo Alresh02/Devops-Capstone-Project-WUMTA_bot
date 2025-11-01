@@ -36,11 +36,17 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                echo 'Deploying to EC2 instance...'
-                sshagent (credentials: ['uptime-ec2-key']) {
+                echo 'Deploying Docker container on EC2...'
+                // Use your EC2 private key from Jenkins credentials
+                withCredentials([sshUserPrivateKey(credentialsId: 'uptime-ec2-key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
-                    scp -o StrictHostKeyChecking=no deploy.sh ubuntu@$APP_SERVER:/home/ubuntu/
-                    ssh -o StrictHostKeyChecking=no ubuntu@$APP_SERVER "chmod +x deploy.sh && ./deploy.sh"
+                    echo "Connecting to EC2 and deploying..."
+                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no ubuntu@$APP_SERVER "
+                        docker pull reshars/uptime-monitor:latest &&
+                        docker stop uptime-monitor || true &&
+                        docker rm uptime-monitor || true &&
+                        docker run -d --name uptime-monitor -p 5000:5000 reshars/uptime-monitor:latest
+                    "
                     '''
                 }
             }
