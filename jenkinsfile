@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "reshars/uptime-monitor"
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds-wumta-bot')
+        DOCKERHUB_CREDENTIALS = credentials('docker-creds-wumta-bot')
         TELEGRAM_BOT_TOKEN = credentials('TELEGRAM_BOT_TOKEN')
         TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
         APP_SERVER = "13.234.76.54" //Replace with your EC2 Public IP
@@ -36,7 +36,7 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                echo '🚀 Deploying to EC2 instance...'
+                echo 'Deploying to EC2 instance...'
                 sshagent (credentials: ['uptime-ec2-key']) {
                     sh '''
                     scp -o StrictHostKeyChecking=no deploy.sh ubuntu@$APP_SERVER:/home/ubuntu/
