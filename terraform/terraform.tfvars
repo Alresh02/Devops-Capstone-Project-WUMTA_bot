@@ -1,0 +1,5 @@
+key_name        = "terraform-key-2"
+public_key_path = "/home/reshma/.ssh/uptime_key.pub"
+aws_region      = "ap-south-1"
+instance_type   = "t3.micro"
+my_ip_cidr      = "0.0.0.0/0"
