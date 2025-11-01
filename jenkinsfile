@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "reshars/uptime-monitor"
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds-wumta-bot')
         TELEGRAM_BOT_TOKEN = credentials('TELEGRAM_BOT_TOKEN')
         TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
         APP_SERVER = "13.234.76.54" //Replace with your EC2 Public IP
