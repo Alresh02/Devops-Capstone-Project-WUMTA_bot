@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+    environment {
+        DOCKERHUB_USER = "reshars"
+        IMAGE = "reshars/uptime-monitor:latest"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git credentialsId: '', url: 'https://github.com/your-username/website-uptime-monitor.git'
+            }
+        }
+        stage('Build Image') {
+            steps {
+                sh 'docker build -t $IMAGE ./app'
+            }
+        }
+        stage('Push Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+                    sh '''
+                        echo $DH_PASS | docker login -u $DH_USER --password-stdin
+                        docker push $IMAGE
+                    '''
+                }
+            }
+        }
+        stage('Deploy to EC2') {
+            steps {
+                // Replace <EC2_PUBLIC_IP> with the output from terraform or use Jenkins credentials
+                sh '''
+                ssh -o StrictHostKeyChecking=no -i /path/to/key.pem ubuntu@<EC2_PUBLIC_IP> "
+                  docker pull reshars/uptime-monitor:latest || true
+                  docker stop uptime-monitor || true
+                  docker rm uptime-monitor || true
+                  docker run -d --name uptime-monitor \
+                    -e TELEGRAM_BOT_TOKEN=\"$TELEGRAM_BOT_TOKEN\" \
+                    -e TELEGRAM_CHAT_ID=\"$TELEGRAM_CHAT_ID\" \
+                    -e CHECK_INTERVAL=300 \
+                    reshars/uptime-monitor:latest
+                "
+                '''
+            }
+        }
+    }
+}
