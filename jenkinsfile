@@ -40,6 +40,8 @@ pipeline {
                 // Use your EC2 private key from Jenkins credentials
                 withCredentials([sshUserPrivateKey(credentialsId: 'uptime-ec2-key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
+                    chmod 400 $SSH_KEY
+
                     echo "Connecting to EC2 and deploying..."
                     ssh -i $SSH_KEY -o StrictHostKeyChecking=no ubuntu@$APP_SERVER "
                         docker pull reshars/uptime-monitor:latest &&
