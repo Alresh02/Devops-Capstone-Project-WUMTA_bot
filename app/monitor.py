@@ -1,4 +1,4 @@
-import requests, time, os, logging
+import requests, time, os, logging # type: ignore
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
