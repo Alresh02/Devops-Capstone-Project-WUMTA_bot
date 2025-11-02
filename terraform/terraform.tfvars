@@ -1,4 +1,4 @@
-key_name        = "terraform-key-2"
+key_name        = "new-jen-key-pair"
 public_key_path = "/home/reshma/.ssh/uptime_key.pub"
 aws_region      = "ap-south-1"
 instance_type   = "t3.micro"
