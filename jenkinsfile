@@ -6,7 +6,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('docker-creds-wumta-bot')
         TELEGRAM_BOT_TOKEN = credentials('TELEGRAM_BOT_TOKEN')
         TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
-        APP_SERVER = "13.234.75.156" //Replace with your EC2 Public IP
+        APP_SERVER = "65.0.180.216" //Replace with your EC2 Public IP
     }
 
     stages {
