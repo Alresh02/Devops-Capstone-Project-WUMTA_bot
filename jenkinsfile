@@ -47,7 +47,7 @@ pipeline {
                         docker pull reshars/uptime-monitor:latest &&
                         docker stop uptime-monitor || true &&
                         docker rm uptime-monitor || true &&
-                        docker run -d --name uptime-monitor -p 5000:5000 reshars/uptime-monitor:latest
+                        docker run -d --name uptime-monitor reshars/uptime-monitor:latest
                     "
                     '''
                 }
